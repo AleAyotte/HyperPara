@@ -1,2 +1,2 @@
 # HyperPara
-IFT630 Hyperparameters search parallelization projet.
+IFT630 Hyperparameters search parallelization project.
