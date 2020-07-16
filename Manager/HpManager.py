@@ -63,7 +63,6 @@ class HPOptimizer(ABC):
         pass
 
 
-
 class SearchSpace:
     """
     From @Ref1
@@ -123,17 +122,17 @@ class HyperoptSearchSpace(SearchSpace):
     """
     From @Ref1
     """
-    def __init__(self, model):
+    def __init__(self, hp_space):
         """
         Class that defines a compatible search space with Hyperopt package hyper-parameter optimization algorithm
 
-        :param model: Available model from Model.py
+        :param hp_space: A dictionary that represent the hyperparameters space.
         """
 
         space = {}
 
-        for hyperparam in model.HP_space:
-            space[hyperparam] = model.HP_space[hyperparam]
+        for hyperparam in hp_space:
+            space[hyperparam] = hp_space[hyperparam]
 
         super(HyperoptSearchSpace, self).__init__(space)
 
@@ -156,21 +155,21 @@ class GPyOptSearchSpace(SearchSpace):
     """
     From @Ref1
     """
-    def __init__(self, model):
+    def __init__(self, hp_space):
         """
         Class that defines a compatible search space with GPyOpt package hyper-parameter optimization algorithm
 
-        :param model: Available model from Model.py
+        :param hp_space: A dictionary that represent the hyperparameters space.
         """
 
         space = {}
         self.categorical_vars = {}
 
-        for hyperparam in model.HP_space:
+        for hyperparam in hp_space:
 
-            hp_initial_value = model.HP_space[hyperparam].value[0]
+            hp_initial_value = hp_space[hyperparam].value[0]
 
-            if model.HP_space[hyperparam].type.value == HPtype.categorical.value:
+            if hp_space[hyperparam].type.value == HPtype.categorical.value:
 
                 space[hyperparam] = {'name': hyperparam, 'type': 'categorical',
                                      'domain': (hp_initial_value,), 'dimensionality': 1}
