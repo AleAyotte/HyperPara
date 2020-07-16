@@ -63,6 +63,53 @@ class HPOptimizer(ABC):
         pass
 
 
+class GpyOptOptimizer(HPOptimizer):
+    """
+    The GPyOpt optimizer class.
+    """
+
+    def __init__(self, hp_space, model_type="GP", acquisition_func="EI"):
+        """
+        The construction of the GPyOpt optimizer.
+
+        :param hp_space:
+        :param model_type:
+        :param acquisition_func:
+        """
+        space = GPyOptSearchSpace(hp_space)
+
+        super().__init__(hp_space)
+        self.model = model_type
+        self.acq_fct = acquisition_func
+
+    def get_next_hparams(self, sample_x, sample_y, pending_x=None):
+        """
+        This function suggest the next list hyperparameters to evaluate according a given sample
+        of evaluated list of hyperparameters.
+
+        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_y: A list that give the score of each list of tested hyperparameters
+        :param pending_x: A list of list that define all hyperparameters that are evaluating
+                          right now by another process.
+        :return: The next list of hyperparameters to evaluate.
+        """
+
+        # We define the surrogate model
+        bo = BayesianOptimization(
+            f=None,
+            model_type=self.model,
+            acquisition_type=self.acq_fct,
+            domain=self.hp_space,
+            X=sample_x, Y=sample_y,
+            de_duplication=True  # required to consider the pending hparams.
+        )
+
+        return bo.suggest_next_locations(pending_X=pending_x)
+
+    def train(self, next_x):
+        pass
+
+
 class SearchSpace:
     """
     From @Ref1
