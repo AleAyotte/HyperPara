@@ -8,6 +8,7 @@
                         This file is highly inspired on another project Ref1 that has been done by the current author.
 """
 
+from abc import ABC, abstractmethod
 from copy import deepcopy
 from enum import Enum, unique
 from GPyOpt.methods import BayesianOptimization
@@ -16,9 +17,10 @@ from hyperopt import hp, fmin, rand, tpe
 
 @unique
 class HPtype(Enum):
-
     """
     Class containing possible types of hyper-parameters
+
+    From @Ref1
     """
 
     real = 1
@@ -27,9 +29,10 @@ class HPtype(Enum):
 
 
 class Hyperparameter:
-
+    """
+    From @Ref1
+    """
     def __init__(self, name, type, value=None):
-
         """
         Class that defines an hyper-parameter
 
@@ -43,10 +46,30 @@ class Hyperparameter:
         self.value = value
 
 
+class HPOptimizer(ABC):
+    """
+    Optimizer abstract class.
+    """
+    def __init__(self, hp_space):
+        super().__init__()
+        self.hp_space = hp_space
+
+    @abstractmethod
+    def get_next_hparams(self, sample_x, sample_y, pending_x=None):
+        pass
+
+    @abstractmethod
+    def train(self, next_x):
+        pass
+
+
+
 class SearchSpace:
+    """
+    From @Ref1
+    """
 
     def __init__(self, space):
-
         """
         Definition of a search space for our hyper-parameters
         """
@@ -56,7 +79,6 @@ class SearchSpace:
         self.log_scaled_hyperparam = []
 
     def reset(self):
-
         """
         Resets search space to default
         """
@@ -65,7 +87,6 @@ class SearchSpace:
         self.log_scaled_hyperparam.clear()
 
     def change_hyperparameter_type(self, hyperparam, new_type):
-
         """
         Changes hyper-parameter type in search space (only useful in GPyOpt search spaces)
 
@@ -76,7 +97,6 @@ class SearchSpace:
         pass
 
     def reformat_for_tuning(self):
-
         """
         Reformats search space so it is now compatible with hyper-parameter optimization method
         """
@@ -84,7 +104,6 @@ class SearchSpace:
         pass
 
     def save_as_log_scaled(self, hyperparam):
-
         """
         Saves hyper-parameter's name that is log scaled
 
@@ -101,9 +120,10 @@ class SearchSpace:
 
 
 class HyperoptSearchSpace(SearchSpace):
-
+    """
+    From @Ref1
+    """
     def __init__(self, model):
-
         """
         Class that defines a compatible search space with Hyperopt package hyper-parameter optimization algorithm
 
@@ -118,7 +138,6 @@ class HyperoptSearchSpace(SearchSpace):
         super(HyperoptSearchSpace, self).__init__(space)
 
     def reformat_for_tuning(self):
-
         """
         Inserts the whole built space in a hp.choice object that can now be pass as a space parameter
         in Hyperopt hyper-parameter optimization algorithm
@@ -134,9 +153,10 @@ class HyperoptSearchSpace(SearchSpace):
 
 
 class GPyOptSearchSpace(SearchSpace):
-
+    """
+    From @Ref1
+    """
     def __init__(self, model):
-
         """
         Class that defines a compatible search space with GPyOpt package hyper-parameter optimization algorithm
 
@@ -165,7 +185,6 @@ class GPyOptSearchSpace(SearchSpace):
         self.hyperparameters_to_tune = None
 
     def change_hyperparameter_type(self, hp_to_fix, new_type):
-
         """
         Changes hyper-parameter type in the search space
 
@@ -175,7 +194,6 @@ class GPyOptSearchSpace(SearchSpace):
         self[hp_to_fix]['type'] = new_type.name
 
     def reformat_for_tuning(self):
-
         """
         Converts the dictionnary to a list containing only internal dictionaries.
         Only keep hyper-parameters that has more than a unique discrete value as a domain
@@ -213,7 +231,6 @@ class GPyOptSearchSpace(SearchSpace):
                             'domain of length 1 and no tuning can be done yet')
 
     def change_to_dict(self, hyper_paramater_values):
-
         """
         Builds a dictionary of hyper-parameters
         :param hyper_paramater_values: 2d numpy array of hyper-parameters' values
@@ -244,11 +261,13 @@ class GPyOptSearchSpace(SearchSpace):
     def __setitem__(self, key, value):
         self.space[key]['domain'] = value
 
+
 @unique
 class DomainType(Enum):
-
     """
     Class containing possible types of hyper-parameters
+
+    From @Ref1
     """
 
     continuous = 1
@@ -256,22 +275,24 @@ class DomainType(Enum):
 
 
 class Domain:
-
-    def __init__(self, type):
-
+    """
+    From @Ref1
+    """
+    def __init__(self, type_):
         """
         Abstract (parent) class that represents a domain for hyper-parameter's possible values
 
-        :param type: One type of domain among DomainType
+        :param type_: One type of domain among DomainType
         """
 
-        self.type = type
+        self.type = type_
 
 
 class ContinuousDomain(Domain):
-
+    """
+    From @Ref1
+    """
     def __init__(self, lower_bound, upper_bound, log_scaled=False):
-
         """
         Class that generates a continuous domain
 
@@ -290,7 +311,6 @@ class ContinuousDomain(Domain):
         super(ContinuousDomain, self).__init__(DomainType.continuous)
 
     def compatible_format(self, tuner_method, label):
-
         """
         Builds the correct format of a uniform distribution according to the method used by the tuner
 
@@ -307,22 +327,21 @@ class ContinuousDomain(Domain):
 
 
 class DiscreteDomain(Domain):
-
+    """
+    Took from @Ref1
+    """
     def __init__(self, possible_values):
-
         """
         Class that generates a domain with possible discrete values of an hyper-parameter
 
         :param possible_values: list of values
-
-
         """
+
         self.values = possible_values
 
         super(DiscreteDomain, self).__init__(DomainType.discrete)
 
     def compatible_format(self, tuner_method, label):
-
         """
         Builds the correct format of discrete set of values according to the method used by the tuner
 
