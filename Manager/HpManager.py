@@ -76,6 +76,67 @@ class HPOptimizer(ABC):
         return hp_dict
 
 
+class HyperoptOptimizer(HPOptimizer):
+    """
+    The HyperOpt optimizer class.
+    """
+
+    def __init__(self, hp_space):
+        """
+        The construction of the GPyOpt optimizer.
+
+        :param hp_space:
+        """
+        space = HyperoptSearchSpace(hp_space)
+
+        super().__init__(space, hp_space.keys())
+
+    @staticmethod
+    def build_objective_function(sample_x, sample_y):
+        """
+
+        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_y: A list that give the score of each list of tested hyperparameters
+        :return:An objective function to tune with hp_tuner.
+        """
+
+        def obj(hparams):
+            assert np.shape(sample_x)[1] == len(hparams.keys())
+
+            hp_list = [hparams[key] for key in hparams.keys()]
+
+            for idx in range(len(sample_x)):
+                if np.all(sample_x[idx] == hp_list):
+                    return sample_y[idx]
+            else:
+                return 0
+
+        return obj
+
+    def get_next_hparams(self, sample_x=None, sample_y=None, pending_x=None):
+        """
+        This function suggest the next list hyperparameters to evaluate according a given sample
+        of evaluated list of hyperparameters.
+
+        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_y: A list that give the score of each list of tested hyperparameters
+        :param pending_x: A list of list that define all hyperparameters that are evaluating
+                          right now by another process.
+        :return: The next list of hyperparameters to evaluate.
+        """
+
+        obj_func = self.build_objective_function(sample_x, sample_y)
+        sample_dict = [self.list_to_dict(hparams) for hparams in sample_x]
+
+        best = fmin(
+            fn=obj_func,
+            space=self.hp_space.space,
+            algo=tpe.suggest,
+            points_to_evaluate=sample_dict,
+            max_evals=100
+        )
+
+
 class GpyOptOptimizer(HPOptimizer):
     """
     The GPyOpt optimizer class.
@@ -189,8 +250,8 @@ class HyperoptSearchSpace(SearchSpace):
 
         space = {}
 
-        for hyperparam in hp_space:
-            space[hyperparam] = hp_space[hyperparam]
+        for hparam_name in hp_space.keys():
+            space[hparam_name] = hp_space[hparam_name].compatible_format('tpe', hparam_name)
 
         super(HyperoptSearchSpace, self).__init__(space)
 
