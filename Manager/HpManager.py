@@ -33,17 +33,17 @@ class Hyperparameter:
     """
     From @Ref1
     """
-    def __init__(self, name, type, value=None):
+    def __init__(self, name, _type, value=None):
         """
         Class that defines an hyper-parameter
 
         :param name: Name of the hyper-parameter
-        :param type: One type out of HPtype (real,.integer, categorical)
+        :param _type: One type out of HPtype (real,.integer, categorical)
         :param value: List with the value of the hyper-parameter
         """
 
         self.name = name
-        self.type = type
+        self.type = _type
         self.value = value
 
 
@@ -52,6 +52,11 @@ class HPOptimizer(ABC):
     Optimizer abstract class.
     """
     def __init__(self, hp_space, keys):
+        """
+        :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+        :param keys:  A list that contain the name of each hyperparameters.
+        """
+
         super().__init__()
         self.hp_space = hp_space
         self.keys = [key for key in keys]
@@ -67,6 +72,7 @@ class HPOptimizer(ABC):
         :param hparams: The list of hparams.
         :return: A dictionnary of hyperparameters.
         """
+
         assert len(hparams) == len(self.keys)
         hp_dict = {}
 
@@ -85,16 +91,25 @@ class HyperoptOptimizer(HPOptimizer):
         """
         The construction of the GPyOpt optimizer.
 
-        :param hp_space:
+        :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+        :param algo: The algorithm that will to define the next point to evaluate.
         """
+
         space = HyperoptSearchSpace(hp_space)
 
         super().__init__(space, hp_space.keys())
+
         self.last_hparams = None
-        self.algo = tpe.suggest if algo=="tpe" else rand.suggest
+        self.algo = tpe.suggest if algo == "tpe" else rand.suggest
+
+        # Hyperopt used ordered dictionary so we need to sort the keys list
+        self.keys.sort()
 
     def build_objective_function(self, sample_x, sample_y):
         """
+        Build the objective that hyperopt will try minimise. If the hparams has already been evaluated,
+        the objective function will return the corresponding result. If the hparams has never been evaluated,
+        the objective function will save the hparams into self.last_hparams and will return 0.
 
         :param sample_x: A list of list that define all tested hyperparameters.
         :param sample_y: A list that give the score of each list of tested hyperparameters
@@ -108,7 +123,7 @@ class HyperoptOptimizer(HPOptimizer):
 
             for idx in range(len(sample_x)):
                 if np.all(sample_x[idx] == hp_list):
-                    return sample_y[idx]
+                    return sample_y[idx][0]
             else:
                 self.last_hparams = hparams
                 return 0
@@ -148,19 +163,20 @@ class GpyOptOptimizer(HPOptimizer):
     The GPyOpt optimizer class.
     """
 
-    def __init__(self, hp_space, model_type="GP", acquisition_func="EI"):
+    def __init__(self, hp_space, algo="GP", acquisition_fct="EI"):
         """
         The construction of the GPyOpt optimizer.
 
-        :param hp_space:
-        :param model_type:
-        :param acquisition_func:
+        :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+        :param algo: The algorithm that will be used to define the surrogate model
+        :param acquisition_fct: The function that will be used to define the next point to evaluate
         """
         space = GPyOptSearchSpace(hp_space)
 
         super().__init__(space, hp_space.keys())
-        self.model = model_type
-        self.acq_fct = acquisition_func
+        self.model = algo
+
+        self.acq_fct = acquisition_fct + "_MCMC" if algo == "GP_MCMC" else acquisition_fct
 
     def get_next_hparams(self, sample_x=None, sample_y=None, pending_x=None):
         """
