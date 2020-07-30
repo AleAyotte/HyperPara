@@ -9,6 +9,7 @@
 """
 
 from abc import ABC, abstractmethod
+from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum, unique
 from GPyOpt.methods import BayesianOptimization
@@ -75,12 +76,13 @@ class HPOptimizer(ABC):
         super().__init__()
         self.hp_space = hp_space
         self.keys = [key for key in keys]
+        self.keys.sort()
 
     @abstractmethod
     def get_next_hparams(self, sample_x, sample_y, pending_x=None):
         pass
 
-    def list_to_dict(self, hparams):
+    def _list_to_dict(self, hparams):
         """
         Convert a list of hparams into a dictionnary of hparams.
 
@@ -117,9 +119,6 @@ class HyperoptOptimizer(HPOptimizer):
         self.last_hparams = None
         self.algo = tpe.suggest if algo == "tpe" else rand.suggest
 
-        # Hyperopt used ordered dictionary so we need to sort the keys list
-        self.keys.sort()
-
     def build_objective_function(self, sample_x, sample_y):
         """
         Build the objective that hyperopt will try minimise. If the hparams has already been evaluated,
@@ -132,12 +131,15 @@ class HyperoptOptimizer(HPOptimizer):
         """
 
         def obj(hparams):
-            assert np.shape(sample_x)[1] == len(hparams.keys())
+            assert len(sample_x[0].keys()) == len(hparams.keys())
 
             hp_list = [hparams[key] for key in hparams.keys()]
 
             for idx in range(len(sample_x)):
-                if np.all(sample_x[idx] == hp_list):
+                _dict = sample_x[idx]
+                sample = [_dict[key] for key in _dict.keys()]
+
+                if np.all(sample == hp_list):
                     return sample_y[idx][0]
             else:
                 self.last_hparams = hparams
@@ -158,13 +160,12 @@ class HyperoptOptimizer(HPOptimizer):
         """
 
         obj_func = self.build_objective_function(sample_x, sample_y)
-        sample_dict = [self.list_to_dict(hparams) for hparams in sample_x]
 
         _ = fmin(
             fn=obj_func,
             space=self.hp_space.space,
             algo=self.algo,
-            points_to_evaluate=sample_dict,
+            points_to_evaluate=sample_x,
             verbose=False,
             show_progressbar=False,
             max_evals=1
@@ -186,6 +187,7 @@ class GpyOptOptimizer(HPOptimizer):
         :param algo: The algorithm that will be used to define the surrogate model
         :param acquisition_fct: The function that will be used to define the next point to evaluate
         """
+
         space = GPyOptSearchSpace(hp_space)
 
         super().__init__(space, hp_space.keys())
@@ -205,18 +207,22 @@ class GpyOptOptimizer(HPOptimizer):
         :return: The next list of hyperparameters to evaluate.
         """
 
+        sample = np.array([[_dict[key] for key in self.keys] for _dict in sample_x])
+        if pending_x is not None:
+            pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
+
         # We define the surrogate model
         bo = BayesianOptimization(
             f=None,
             model_type=self.model,
             acquisition_type=self.acq_fct,
             domain=list(self.hp_space.space.values()),
-            X=sample_x, Y=sample_y,
+            X=sample, Y=sample_y,
             de_duplication=True  # required to consider the pending hparams.
         )
 
         hp_list = bo.suggest_next_locations(pending_X=pending_x)
-        return self.list_to_dict(hp_list[0])
+        return self._list_to_dict(hp_list[0])
 
 
 class SearchSpace:
@@ -240,23 +246,6 @@ class SearchSpace:
 
         self.space = deepcopy(self.default_space)
         self.log_scaled_hyperparam.clear()
-
-    def change_hyperparameter_type(self, hyperparam, new_type):
-        """
-        Changes hyper-parameter type in search space (only useful in GPyOpt search spaces)
-
-        :param hyperparam: Name of the hyperparameter
-        :param new_type: Type from HPtype
-        """
-
-        pass
-
-    def reformat_for_tuning(self):
-        """
-        Reformats search space so it is now compatible with hyper-parameter optimization method
-        """
-
-        pass
 
     def save_as_log_scaled(self, hyperparam):
         """
@@ -291,20 +280,6 @@ class HyperoptSearchSpace(SearchSpace):
             space[hparam_name] = hp_space[hparam_name].compatible_format('tpe', hparam_name)
 
         super(HyperoptSearchSpace, self).__init__(space)
-
-    def reformat_for_tuning(self):
-        """
-        Inserts the whole built space in a hp.choice object that can now be pass as a space parameter
-        in Hyperopt hyper-parameter optimization algorithm
-        """
-
-        for hyperparam in list(self.space.keys()):
-
-            # We check if the hyper-parameter space is an hyperOpt object (if yes, the user wants it to be tune)
-            if type(self[hyperparam]).__name__ == 'Hyperparameter':
-                self.space.pop(hyperparam)
-
-        self.space = hp.choice('space', [self.space])
 
 
 class GPyOptSearchSpace(SearchSpace):
