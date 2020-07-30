@@ -9,7 +9,6 @@
 """
 
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum, unique
 from GPyOpt.methods import BayesianOptimization
@@ -285,7 +284,6 @@ class GPyOptSearchSpace(SearchSpace):
         """
 
         space = {}
-        self.categorical_vars = {}
 
         for hparam_name in hp_space.keys():
             hparam = hp_space[hparam_name]
@@ -301,7 +299,6 @@ class GPyOptSearchSpace(SearchSpace):
                                   'dimensionality': 1}
 
         super(GPyOptSearchSpace, self).__init__(space)
-        self.hyperparameters_to_tune = None
 
 
 @unique
@@ -340,7 +337,6 @@ class ContinuousDomain(Domain):
 
         :param lower_bound: Lowest possible value (included)
         :param upper_bound: Highest possible value (included)
-        :param log_scaled: If True, hyper-parameter will now be seen as 10^x where x follows a uniform(lb,ub)
         """
 
         if lower_bound > upper_bound:
