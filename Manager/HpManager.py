@@ -247,15 +247,6 @@ class SearchSpace:
         self.space = deepcopy(self.default_space)
         self.log_scaled_hyperparam.clear()
 
-    def save_as_log_scaled(self, hyperparam):
-        """
-        Saves hyper-parameter's name that is log scaled
-
-        :param hyperparam: Name of the hyperparameter
-        """
-
-        self.log_scaled_hyperparam.append(hyperparam)
-
     def __getitem__(self, key):
         return self.space[key]
 
@@ -343,7 +334,7 @@ class ContinuousDomain(Domain):
     """
     From @Ref1
     """
-    def __init__(self, lower_bound, upper_bound, log_scaled=False):
+    def __init__(self, lower_bound, upper_bound):
         """
         Class that generates a continuous domain
 
@@ -357,7 +348,6 @@ class ContinuousDomain(Domain):
 
         self.lb = lower_bound
         self.ub = upper_bound
-        self.log_scaled = log_scaled
 
         super(ContinuousDomain, self).__init__(DomainType.continuous)
 
