@@ -81,7 +81,7 @@ class HyperoptOptimizer(HPOptimizer):
     The HyperOpt optimizer class.
     """
 
-    def __init__(self, hp_space):
+    def __init__(self, hp_space, algo="tpe"):
         """
         The construction of the GPyOpt optimizer.
 
@@ -90,9 +90,10 @@ class HyperoptOptimizer(HPOptimizer):
         space = HyperoptSearchSpace(hp_space)
 
         super().__init__(space, hp_space.keys())
+        self.last_hparams = None
+        self.algo = tpe.suggest if algo=="tpe" else rand.suggest
 
-    @staticmethod
-    def build_objective_function(sample_x, sample_y):
+    def build_objective_function(self, sample_x, sample_y):
         """
 
         :param sample_x: A list of list that define all tested hyperparameters.
@@ -109,6 +110,7 @@ class HyperoptOptimizer(HPOptimizer):
                 if np.all(sample_x[idx] == hp_list):
                     return sample_y[idx]
             else:
+                self.last_hparams = hparams
                 return 0
 
         return obj
@@ -128,13 +130,17 @@ class HyperoptOptimizer(HPOptimizer):
         obj_func = self.build_objective_function(sample_x, sample_y)
         sample_dict = [self.list_to_dict(hparams) for hparams in sample_x]
 
-        best = fmin(
+        _ = fmin(
             fn=obj_func,
             space=self.hp_space.space,
-            algo=tpe.suggest,
+            algo=self.algo,
             points_to_evaluate=sample_dict,
-            max_evals=100
+            verbose=False,
+            show_progressbar=False,
+            max_evals=1
         )
+
+        return self.last_hparams
 
 
 class GpyOptOptimizer(HPOptimizer):
