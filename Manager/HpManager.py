@@ -47,6 +47,21 @@ class Hyperparameter:
         self.value = value
 
 
+def get_optimizer(hp_space, algo, acquisition_fct="EI"):
+    """
+
+    :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+    :param algo: The algorithm that will to define the next point to evaluate.
+    :param acquisition_fct: The function that will be used to define the next point to evaluate.
+                            Only used by Gaussian process.
+    :return:
+    """
+    if algo == "tpe" or algo == "random":
+        return HyperoptOptimizer(hp_space, algo=algo)
+    elif algo == "GP" or algo == "GP_MCMC":
+        return GpyOptOptimizer(hp_space, algo=algo, acquisition_fct=acquisition_fct)
+
+
 class HPOptimizer(ABC):
     """
     Optimizer abstract class.
