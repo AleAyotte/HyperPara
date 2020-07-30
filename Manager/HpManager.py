@@ -13,6 +13,7 @@ from copy import deepcopy
 from enum import Enum, unique
 from GPyOpt.methods import BayesianOptimization
 from hyperopt import hp, fmin, rand, tpe
+import numpy as np
 
 
 @unique
@@ -50,17 +51,29 @@ class HPOptimizer(ABC):
     """
     Optimizer abstract class.
     """
-    def __init__(self, hp_space):
+    def __init__(self, hp_space, keys):
         super().__init__()
         self.hp_space = hp_space
+        self.keys = [key for key in keys]
 
     @abstractmethod
     def get_next_hparams(self, sample_x, sample_y, pending_x=None):
         pass
 
-    @abstractmethod
-    def train(self, next_x):
-        pass
+    def list_to_dict(self, hparams):
+        """
+        Convert a list of hparams into a dictionnary of hparams.
+
+        :param hparams: The list of hparams.
+        :return: A dictionnary of hyperparameters.
+        """
+        assert len(hparams) == len(self.keys)
+        hp_dict = {}
+
+        for it in range(len(hparams)):
+            hp_dict[self.keys[it]] = hparams[it]
+
+        return hp_dict
 
 
 class GpyOptOptimizer(HPOptimizer):
@@ -78,11 +91,11 @@ class GpyOptOptimizer(HPOptimizer):
         """
         space = GPyOptSearchSpace(hp_space)
 
-        super().__init__(hp_space)
+        super().__init__(space, hp_space.keys())
         self.model = model_type
         self.acq_fct = acquisition_func
 
-    def get_next_hparams(self, sample_x, sample_y, pending_x=None):
+    def get_next_hparams(self, sample_x=None, sample_y=None, pending_x=None):
         """
         This function suggest the next list hyperparameters to evaluate according a given sample
         of evaluated list of hyperparameters.
@@ -99,15 +112,13 @@ class GpyOptOptimizer(HPOptimizer):
             f=None,
             model_type=self.model,
             acquisition_type=self.acq_fct,
-            domain=self.hp_space,
+            domain=list(self.hp_space.space.values()),
             X=sample_x, Y=sample_y,
             de_duplication=True  # required to consider the pending hparams.
         )
 
-        return bo.suggest_next_locations(pending_X=pending_x)
-
-    def train(self, next_x):
-        pass
+        hp_list = bo.suggest_next_locations(pending_X=pending_x)
+        return self.list_to_dict(hp_list[0])
 
 
 class SearchSpace:
@@ -212,20 +223,18 @@ class GPyOptSearchSpace(SearchSpace):
         space = {}
         self.categorical_vars = {}
 
-        for hyperparam in hp_space:
+        for hparam_name in hp_space.keys():
+            hparam = hp_space[hparam_name]
 
-            hp_initial_value = hp_space[hyperparam].value[0]
-
-            if hp_space[hyperparam].type.value == HPtype.categorical.value:
-
-                space[hyperparam] = {'name': hyperparam, 'type': 'categorical',
-                                     'domain': (hp_initial_value,), 'dimensionality': 1}
-
-                self.categorical_vars[hyperparam] = {}
-
+            if isinstance(hparam, ContinuousDomain):
+                _type = 'continuous'
             else:
-                space[hyperparam] = {'name': hyperparam, 'type': 'discrete',
-                                     'domain': (hp_initial_value,), 'dimensionality': 1}
+                _type = 'discrete'
+
+            space[hparam_name] = {'name': hparam_name,
+                                  'type': 'continuous',
+                                  'domain': hparam.compatible_format('gaussian_process', hparam_name),
+                                  'dimensionality': 1}
 
         super(GPyOptSearchSpace, self).__init__(space)
         self.hyperparameters_to_tune = None
