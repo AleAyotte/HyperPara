@@ -56,7 +56,7 @@ def get_optimizer(hp_space, algo, acquisition_fct="EI"):
                             Only used by Gaussian process.
     :return:
     """
-    if algo == "tpe" or algo == "random":
+    if algo == "tpe" or algo == "random" or algo == "rand":
         return HyperoptOptimizer(hp_space, algo=algo)
     elif algo == "GP" or algo == "GP_MCMC":
         return GpyOptOptimizer(hp_space, algo=algo, acquisition_fct=acquisition_fct)
@@ -124,34 +124,57 @@ class HyperoptOptimizer(HPOptimizer):
         the objective function will return the corresponding result. If the hparams has never been evaluated,
         the objective function will save the hparams into self.last_hparams and will return 0.
 
-        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_x: A list of dictionary that define all tested hyperparameters.
         :param sample_y: A list that give the score of each list of tested hyperparameters
         :return:An objective function to tune with hp_tuner.
         """
 
-        def obj(hparams):
-            assert len(sample_x[0].keys()) == len(hparams.keys())
+        if sample_x is not None:
+            def obj(hparams):
+                assert len(sample_x[0].keys()) == len(hparams.keys())
 
-            hp_list = [hparams[key] for key in hparams.keys()]
+                hp_list = [hparams[key] for key in hparams.keys()]
+                for idx in range(len(sample_x)):
+                    _dict = sample_x[idx]
+                    sample = [_dict[key] for key in _dict.keys()]
 
-            for idx in range(len(sample_x)):
-                _dict = sample_x[idx]
-                sample = [_dict[key] for key in _dict.keys()]
+                    if np.all(sample == hp_list):
+                        return sample_y[idx][0]
 
-                if np.all(sample == hp_list):
-                    return sample_y[idx][0]
-            else:
+                else:
+                    self.last_hparams = hparams
+                    return 0
+        else:
+            def obj(hparams):
                 self.last_hparams = hparams
                 return 0
-
         return obj
+
+    def reformat_point_to_evaluate(self, sample_x):
+        """
+        The values of the discrete dimensions, by their index in the possible values list.
+        Exemple: if "batch_size": DiscreteDomain([50, 100, 150, 200]).
+        then sample = [{"batch_size": 100}, {"batch_size": 50}] -> sample = [{"batch_size": 1}, {"batch_size": 0}]
+
+        :param sample_x: A list of dictionary that define all tested hyperparameters.
+        :return: A list of dictionary that define all tested hyperparameters but compatible with hyperopt.
+        """
+
+        disc_space = self.hp_space.discrete_space
+        sample = deepcopy(sample_x)
+
+        for it in range(len(sample)):
+            _dict = sample[it]
+            for key in disc_space.keys():
+                _dict[key] = self.hp_space.get_discrete_index(key, _dict[key])
+        return sample
 
     def get_next_hparams(self, sample_x=None, sample_y=None, pending_x=None):
         """
         This function suggest the next list hyperparameters to evaluate according a given sample
         of evaluated list of hyperparameters.
 
-        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_x: A list of dictionary that define all tested hyperparameters.
         :param sample_y: A list that give the score of each list of tested hyperparameters
         :param pending_x: A list of list that define all hyperparameters that are evaluating
                           right now by another process.
@@ -160,11 +183,17 @@ class HyperoptOptimizer(HPOptimizer):
 
         obj_func = self.build_objective_function(sample_x, sample_y)
 
+        if sample_x is not None:
+            sample = self.reformat_point_to_evaluate(sample_x)
+        else:
+            sample = sample_x
+
+        # print(hp.choice("space", [self.hp_space.space]))
         _ = fmin(
             fn=obj_func,
             space=self.hp_space.space,
             algo=self.algo,
-            points_to_evaluate=sample_x,
+            points_to_evaluate=sample,
             verbose=False,
             show_progressbar=False,
             max_evals=1
@@ -199,14 +228,15 @@ class GpyOptOptimizer(HPOptimizer):
         This function suggest the next list hyperparameters to evaluate according a given sample
         of evaluated list of hyperparameters.
 
-        :param sample_x: A list of list that define all tested hyperparameters.
+        :param sample_x: A list of dictionary that define all tested hyperparameters.
         :param sample_y: A list that give the score of each list of tested hyperparameters
-        :param pending_x: A list of list that define all hyperparameters that are evaluating
+        :param pending_x: A list of dictionary that define all hyperparameters that are evaluating
                           right now by another process.
         :return: The next list of hyperparameters to evaluate.
         """
 
         sample = np.array([[_dict[key] for key in self.keys] for _dict in sample_x])
+
         if pending_x is not None:
             pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
 
@@ -265,11 +295,26 @@ class HyperoptSearchSpace(SearchSpace):
         """
 
         space = {}
+        self.discrete_space = {}
 
         for hparam_name in hp_space.keys():
             space[hparam_name] = hp_space[hparam_name].compatible_format('tpe', hparam_name)
 
+            if isinstance(hp_space[hparam_name], DiscreteDomain):
+                self.discrete_space[hparam_name] = hp_space[hparam_name].values
+
         super(HyperoptSearchSpace, self).__init__(space)
+
+    def get_discrete_index(self, hparam_names, value):
+        """
+        Return the index list of a value in the possible values list according to the name of the hyperparameter.
+
+        :param hparam_names: A string that represent the hyperparameter name.
+        :param value: The value. Must be present in the possible values list
+        :return: The index list of the value in the list.
+        """
+
+        return self.discrete_space[hparam_names].index(value)
 
 
 class GPyOptSearchSpace(SearchSpace):
@@ -294,7 +339,7 @@ class GPyOptSearchSpace(SearchSpace):
                 _type = 'discrete'
 
             space[hparam_name] = {'name': hparam_name,
-                                  'type': 'continuous',
+                                  'type': _type,
                                   'domain': hparam.compatible_format('gaussian_process', hparam_name),
                                   'dimensionality': 1}
 
