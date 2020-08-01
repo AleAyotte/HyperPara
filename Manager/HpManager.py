@@ -188,7 +188,6 @@ class HyperoptOptimizer(HPOptimizer):
         else:
             sample = sample_x
 
-        # print(hp.choice("space", [self.hp_space.space]))
         _ = fmin(
             fn=obj_func,
             space=self.hp_space.space,
