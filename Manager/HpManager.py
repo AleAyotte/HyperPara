@@ -292,11 +292,10 @@ class HyperoptSearchSpace(SearchSpace):
 
         :param hp_space: A dictionary that represent the hyperparameters space.
         """
-
         space = {}
         self.discrete_space = {}
 
-        for hparam_name in hp_space.keys():
+        for hparam_name in sorted(hp_space.keys()):
             space[hparam_name] = hp_space[hparam_name].compatible_format('tpe', hparam_name)
 
             if isinstance(hp_space[hparam_name], DiscreteDomain):
@@ -329,7 +328,7 @@ class GPyOptSearchSpace(SearchSpace):
 
         space = {}
 
-        for hparam_name in hp_space.keys():
+        for hparam_name in sorted(hp_space.keys()):
             hparam = hp_space[hparam_name]
 
             if isinstance(hparam, ContinuousDomain):
