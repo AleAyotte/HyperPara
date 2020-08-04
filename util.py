@@ -39,3 +39,22 @@ def objective(hparams, device="cpu"):
     net.fit(x_train, t_train)
 
     return 1 - net.score(x_test, t_test)
+
+def create_msg_task(code, optim=None, sample_x=None, sample_y=None, pending_x=None):
+    task_dict = {
+        "code": code,
+        "optim": optim,
+        "sample_x": sample_x,
+        "sample_y": sample_y,
+        "pending_x": pending_x,
+    }
+    return task_dict
+
+def create_msg_result(code, hparams, score=None):
+    result_dict = {
+        "code": code,
+        "hparams": hparams,
+        "score": score,
+    }
+    return result_dict
+
