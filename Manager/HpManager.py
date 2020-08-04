@@ -14,7 +14,7 @@ from enum import Enum, unique
 from GPyOpt.methods import BayesianOptimization
 from hyperopt import hp, fmin, rand, tpe
 import numpy as np
-
+from functools import partial
 
 @unique
 class HPtype(Enum):
@@ -47,19 +47,20 @@ class Hyperparameter:
         self.value = value
 
 
-def get_optimizer(hp_space, algo, acquisition_fct="EI"):
+def get_optimizer(hp_space, algo, n_rand_point=10, acquisition_fct="EI"):
     """
 
     :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
     :param algo: The algorithm that will to define the next point to evaluate.
+    :param n_rand_point: Number of points that will sample randomly before starting the optimization.
     :param acquisition_fct: The function that will be used to define the next point to evaluate.
                             Only used by Gaussian process.
     :return:
     """
     if algo == "tpe" or algo == "random" or algo == "rand":
-        return HyperoptOptimizer(hp_space, algo=algo)
+        return HyperoptOptimizer(hp_space, n_rand_point=n_rand_point, algo=algo)
     elif algo == "GP" or algo == "GP_MCMC":
-        return GpyOptOptimizer(hp_space, algo=algo, acquisition_fct=acquisition_fct)
+        return GpyOptOptimizer(hp_space, n_rand_point=n_rand_point, algo=algo, acquisition_fct=acquisition_fct)
 
 
 class HPOptimizer(ABC):
@@ -103,11 +104,12 @@ class HyperoptOptimizer(HPOptimizer):
     The HyperOpt optimizer class.
     """
 
-    def __init__(self, hp_space, algo="tpe"):
+    def __init__(self, hp_space, n_rand_point, algo="tpe"):
         """
         The construction of the GPyOpt optimizer.
 
         :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+        :param n_rand_point: Number of points that will sample randomly before starting the optimization.
         :param algo: The algorithm that will to define the next point to evaluate.
         """
 
@@ -116,7 +118,7 @@ class HyperoptOptimizer(HPOptimizer):
         super().__init__(space, hp_space.keys())
 
         self.last_hparams = None
-        self.algo = tpe.suggest if algo == "tpe" else rand.suggest
+        self.algo = partial(tpe.suggest, n_startup_jobs=n_rand_point) if algo == "tpe" else rand.suggest
 
     def build_objective_function(self, sample_x, sample_y):
         """
@@ -129,7 +131,7 @@ class HyperoptOptimizer(HPOptimizer):
         :return:An objective function to tune with hp_tuner.
         """
 
-        if sample_x is not None:
+        if sample_x is not None and len(sample_x) > 0:
             def obj(hparams):
                 assert len(sample_x[0].keys()) == len(hparams.keys())
 
@@ -206,11 +208,12 @@ class GpyOptOptimizer(HPOptimizer):
     The GPyOpt optimizer class.
     """
 
-    def __init__(self, hp_space, algo="GP", acquisition_fct="EI"):
+    def __init__(self, hp_space, n_rand_point, algo="GP", acquisition_fct="EI"):
         """
         The construction of the GPyOpt optimizer.
 
         :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
+        :param n_rand_point: Number of points that will sample randomly before starting the optimization.
         :param algo: The algorithm that will be used to define the surrogate model
         :param acquisition_fct: The function that will be used to define the next point to evaluate
         """
@@ -218,8 +221,11 @@ class GpyOptOptimizer(HPOptimizer):
         space = GPyOptSearchSpace(hp_space)
 
         super().__init__(space, hp_space.keys())
-        self.model = algo
 
+        # We save it for random search.
+        self.rand_space = hp_space
+        self.model = algo
+        self.initial_random_point = n_rand_point
         self.acq_fct = acquisition_fct + "_MCMC" if algo == "GP_MCMC" else acquisition_fct
 
     def get_next_hparams(self, sample_x=None, sample_y=None, pending_x=None):
@@ -234,23 +240,28 @@ class GpyOptOptimizer(HPOptimizer):
         :return: The next list of hyperparameters to evaluate.
         """
 
-        sample = np.array([[_dict[key] for key in self.keys] for _dict in sample_x])
+        if len(sample_x) < self.initial_random_point:
+            random_opt = get_optimizer(self.rand_space, "rand")
+            return random_opt.get_next_hparams()
 
-        if pending_x is not None:
-            pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
+        else:
+            sample = np.array([[_dict[key] for key in self.keys] for _dict in sample_x])
 
-        # We define the surrogate model
-        bo = BayesianOptimization(
-            f=None,
-            model_type=self.model,
-            acquisition_type=self.acq_fct,
-            domain=list(self.hp_space.space.values()),
-            X=sample, Y=sample_y,
-            de_duplication=True  # required to consider the pending hparams.
-        )
+            if pending_x is not None:
+                pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
 
-        hp_list = bo.suggest_next_locations(pending_X=pending_x)
-        return self._list_to_dict(hp_list[0])
+            # We define the surrogate model
+            bo = BayesianOptimization(
+                f=None,
+                model_type=self.model,
+                acquisition_type=self.acq_fct,
+                domain=list(self.hp_space.space.values()),
+                X=sample, Y=sample_y,
+                de_duplication=True  # required to consider the pending hparams.
+            )
+
+            hp_list = bo.suggest_next_locations(pending_X=pending_x)
+            return self._list_to_dict(hp_list[0])
 
 
 class SearchSpace:

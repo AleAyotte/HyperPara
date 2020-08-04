@@ -29,7 +29,6 @@ def load_breast_cancer_dataset(scaled=True, test_split=0.2):
 
 def objective(hparams, device="cpu"):
     x_train, t_train, x_test, t_test = load_breast_cancer_dataset()
-
     net = MLPClassifier(
         hidden_layer_sizes=(50, 10, 2),
         learning_rate_init=10**hparams['lr'],
@@ -46,26 +45,22 @@ def objective(hparams, device="cpu"):
 h_space = {"lr": ContinuousDomain(-7, -1),
            "alpha": ContinuousDomain(-7, -1),
            "num_iters": DiscreteDomain([50, 100, 150, 200]),
-           "b_size": DiscreteDomain(np.arange(20, 80, 10).tolist())
+           "b_size": DiscreteDomain(np.arange(20, 80, 1).tolist())
            }
 
 ####################################
 #               TPE
 ####################################
+
 print("TPE OPTIMIZATION")
-opt1 = HpManager.get_optimizer(h_space, algo="rand")
-opt2 = HpManager.get_optimizer(h_space, algo="tpe")
+opt1 = HpManager.get_optimizer(h_space, n_rand_point=5, algo="tpe")
 
 sample_x, sample_y = [], []
 
 for it in tqdm(range(20)):
-
-    if it < 5:
-        hparams = opt1.get_next_hparams()
-    else:
-        # For Gabriel
-        # pending_x are the point that currently evaluate in another process.
-        hparams = opt2.get_next_hparams(sample_x, sample_y, pending_x=None)
+    # For Gabriel
+    # pending_x are the point that currently evaluate in another process.
+    hparams = opt1.get_next_hparams(sample_x, sample_y, pending_x=None)
 
     sample_x.extend([hparams])
     sample_y.extend([[objective(hparams)]])
@@ -85,18 +80,14 @@ print("GAUSSIAN PROCESS OPTIMIZATION")
 
 # Algorithm can be GP or GP_MCMC
 # Acquisition function can be: EI, MPI, LCB
-opt3 = HpManager.get_optimizer(h_space, algo="GP", acquisition_fct="MPI")
+opt2 = HpManager.get_optimizer(h_space, n_rand_point=5, algo="GP", acquisition_fct="MPI")
 
 sample_x, sample_y = [], []
 
 for it in tqdm(range(20)):
-
-    if it < 5:
-        hparams = opt1.get_next_hparams()
-    else:
-        # For Gabriel
-        # pending_x are the point that currently evaluate in another process.
-        hparams = opt3.get_next_hparams(sample_x, sample_y, pending_x=None)
+    # For Gabriel
+    # pending_x are the point that currently evaluate in another process.
+    hparams = opt2.get_next_hparams(sample_x, sample_y, pending_x=None)
 
     sample_x.extend([hparams])
     sample_y.extend([[objective(hparams)]])
