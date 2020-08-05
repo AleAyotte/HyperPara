@@ -1,14 +1,14 @@
 import os, sys
 import argparse
 sys.path.append(os.path.dirname(os.path.join(os.getcwd())))
-from classifiers.svm import SVMClassifier
-from classifiers.fully_connected import FullyConnectedClassifier
+from Model.classifiers.svm import SVMClassifier
+from Model.classifiers.fully_connected import FullyConnectedClassifier
 my_parser = argparse.ArgumentParser()
 
 
 def main():
     my_parser = argparse.ArgumentParser()
-    my_parser.add_argument('--model', action='store', type=str, required=True)
+    my_parser.add_argument('--Model', action='store', type=str, required=True)
     args = my_parser.parse_args()
 
     if args.model == "svm":

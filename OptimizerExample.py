@@ -6,47 +6,38 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn import preprocessing
 from tqdm import tqdm
-
-
-def load_breast_cancer_dataset(scaled=True, test_split=0.2):
-
-    """
-    Loads the breast cancer wisconsin dataset for classication task
-
-    :param scaled: True for scaling the data.
-    :param test_split: test_split: Proportion of the dataset that will be use as test data (Default 0.2 = 20%).
-    :return: 4 numpy arrays for training features, training labels, testing features and testing labels respectively.
-    """
-
-    data, target = load_breast_cancer(True)
-
-    if scaled:
-        data = preprocessing.scale(data)
-
-    x_train, x_test, t_train, t_test = train_test_split(data, target, test_size=test_split)
-    return x_train, t_train, x_test, t_test
-
+from Model.classifiers.fully_connected import FullyConnectedClassifier
+from Model.classifiers.svm import SVMClassifier
 
 def objective(hparams, device="cpu"):
-    x_train, t_train, x_test, t_test = load_breast_cancer_dataset()
-    net = MLPClassifier(
-        hidden_layer_sizes=(50, 10, 2),
-        learning_rate_init=10**hparams['lr'],
-        alpha=10**hparams['alpha'],
-        max_iter=int(hparams['num_iters']),
-        batch_size=int(hparams['b_size'])
-    )
 
-    net.fit(x_train, t_train)
+    # hyperparameter = {
+    #     'hidden_layer_sizes': (50, 10, 2),
+    #     'learning_rate_init': 10**hparams['learning_rate_init'],
+    #     'alpha': 10**hparams['alpha'],
+    #     'max_iter': int(hparams['num_iters']),
+    #     'batch_size': int(hparams['b_size'])
+    # }
 
-    return 1 - net.score(x_test, t_test)
+    hyperparameter = {
+        'C': hparams['C'],
+        'gamma': hparams['gamma']
+    }
+
+    net = SVMClassifier(hyperparameter)
+
+    net.train()
+
+    return 1 - net.evaluate("Testing")
 
 
-h_space = {"lr": ContinuousDomain(-7, -1),
-           "alpha": ContinuousDomain(-7, -1),
-           "num_iters": DiscreteDomain([50, 100, 150, 200]),
-           "b_size": DiscreteDomain(np.arange(20, 80, 1).tolist())
-           }
+# h_space = {"lr": ContinuousDomain(-7, -1),
+#            "alpha": ContinuousDomain(-7, -1),
+#            "num_iters": DiscreteDomain([50, 100, 150, 200]),
+#            "b_size": DiscreteDomain(np.arange(20, 80, 1).tolist())
+#            }
+
+h_space = {"C": ContinuousDomain(1, 3), "gamma": ContinuousDomain(0.5, 2)}
 
 ####################################
 #               TPE
@@ -68,7 +59,7 @@ for it in tqdm(range(20)):
 print(sample_y)
 
 best_idx = np.argmin(sample_y)
-print("\nThe best hyperparameters is {}.\n\nFor a score of {}\n\n".format(
+print("\nThe best hyperparameters is {}.\n\n For a score of {}\n\n".format(
     sample_x[best_idx],
     sample_y[best_idx]
 ))
@@ -95,7 +86,7 @@ for it in tqdm(range(20)):
 print(sample_y)
 
 best_idx = np.argmin(sample_y)
-print("\nThe best hyperparameters is {}.\n\nFor a score of {}\n\n".format(
+print("\nThe best hyperparameters is {}.\n\n For a score of {}\n\n".format(
     sample_x[best_idx],
     sample_y[best_idx]
 ))
