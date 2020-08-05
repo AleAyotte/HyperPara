@@ -4,6 +4,7 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn import preprocessing
+import argparse
 
 
 def load_breast_cancer_dataset(scaled=True, test_split=0.2):
@@ -57,4 +58,23 @@ def create_msg_result(code, hparams, score=None):
         "score": score,
     }
     return result_dict
+
+
+def argument_parser():
+    """
+        A parser to allow user to easily experiment different models along with datasets and differents parameters
+    """
+    parser = argparse.ArgumentParser(usage='\n mpiexec -n [int] python ordonnanceur.py [algo]'
+                                           '\n mpiexec -n 2 python ordonnanceur.py --algo=GP'
+                                           '\n mpiexec -n 3 python ordonnanceur.py --algo=tpe',
+                                     description="This program allows to train different models of regression on fn_500_dataset"
+                                                 )
+    parser.add_argument('--algo', action='store', type=str, required=True,
+                        help="Company's name")
+    parser.add_argument('--nb_iter', type=int, default=20,
+                        help='The size of the training batch')
+    parser.add_argument('--nb_rand', type=int, default=5,
+                        help='number of iteration with random search, must be <= nb_iter')
+
+    return parser.parse_args()
 
