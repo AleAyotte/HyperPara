@@ -32,7 +32,8 @@ class AbstractClassifier:
             x, y = self.X_train, self.Y_train
         else:
             x, y = self.X_test, self.Y_test
-        return 1 - round(self.model.score(x, y) * 100, 2)
+        return 1 - self.model.score(x, y)
+
 
 if __name__ == "__main__":
     pass
