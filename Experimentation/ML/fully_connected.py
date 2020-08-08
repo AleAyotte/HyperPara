@@ -2,7 +2,7 @@ import numpy as np
 from Manager import HpManager
 from Manager.HpManager import ContinuousDomain, DiscreteDomain
 from tqdm import tqdm
-from Experimentation.ML.classifiers.fully_connected import FullyConnectedClassifier
+from classifiers.fully_connected import FullyConnectedClassifier
 import argparse
 
 

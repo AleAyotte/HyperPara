@@ -1,22 +1,19 @@
+from classifiers.svm import SVMClassifier
 import numpy as np
 from Manager import HpManager
-from Manager.HpManager import ContinuousDomain, DiscreteDomain
+from Manager.HpManager import ContinuousDomain
 from tqdm import tqdm
-from Experimentation.ML.classifiers.fully_connected import FullyConnectedClassifier
 import argparse
 
 
 def objective(hparams, dataset, device="cpu"):
 
     hyperparameter = {
-        'hidden_layer_sizes': (50, 10, 2),
-        'learning_rate_init': 10**hparams['lr'],
-        'alpha': 10**hparams['alpha'],
-        'max_iter': int(hparams['num_iters']),
-        'batch_size': int(hparams['b_size'])
+        'C': hparams['C'],
+        'gamma': hparams['gamma']
     }
 
-    net = FullyConnectedClassifier(hyperparameter, dataset)
+    net = SVMClassifier(hyperparameter, dataset)
 
     net.train()
 
@@ -29,12 +26,7 @@ if __name__ == "__main__":
     my_parser.add_argument('--dataset', action='store', type=str, required=True)
     args = my_parser.parse_args()
 
-    h_space = {
-        "lr": ContinuousDomain(-7, -1),
-        "alpha": ContinuousDomain(-7, -1),
-        "num_iters": DiscreteDomain([50, 100, 150, 200]),
-        "b_size": DiscreteDomain(np.arange(20, 80, 1).tolist())
-    }
+    h_space = {"C": ContinuousDomain(1, 3), "gamma": ContinuousDomain(0.5, 2)}
 
     ####################################
     #               TPE

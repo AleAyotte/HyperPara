@@ -3,6 +3,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
+
 class DataLoader:
 
     def __init__(self, test_size=0.25, random_state=42, dataset=None):

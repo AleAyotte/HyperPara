@@ -1,9 +1,6 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from Model.cross_validation.cross_validation import CrossValidation
-from Model.data_loader.data_loader import DataLoader
+from data_loader.data_loader import DataLoader
 
 
 class AbstractClassifier:
@@ -36,3 +33,6 @@ class AbstractClassifier:
         else:
             x, y = self.X_test, self.Y_test
         return 1 - round(self.model.score(x, y) * 100, 2)
+
+if __name__ == "__main__":
+    pass

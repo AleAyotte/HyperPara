@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.join(os.getcwd())))
 from sklearn.neural_network import MLPClassifier
-from Model.classifiers.abstract_classifier import AbstractClassifier
+from .abstract_classifier import AbstractClassifier
 
 
 

@@ -1,8 +1,8 @@
 import os, sys
 import argparse
 sys.path.append(os.path.dirname(os.path.join(os.getcwd())))
-from Model.classifiers.svm import SVMClassifier
-from Model.classifiers.fully_connected import FullyConnectedClassifier
+from Experimentation.ML.classifiers.svm import SVMClassifier
+from Experimentation.ML.classifiers.fully_connected import FullyConnectedClassifier
 my_parser = argparse.ArgumentParser()
 
 
