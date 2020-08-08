@@ -9,6 +9,7 @@ class AbstractClassifier:
     Parent class of all project classifiers.
     Attributes:
         model : An object that defines the classifier classifiers to implement.
+        metrics : An object that defines the different metrics that can be used to evaluate a classifiers.
         X_train : The features of the training data
         Y_train : The targets of training data (the ground truth label)
         X_test :  The features of the testing data
