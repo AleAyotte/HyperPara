@@ -6,21 +6,23 @@ from classifiers.fully_connected import FullyConnectedClassifier
 import argparse
 
 
-def objective(hparams, dataset, device="cpu"):
+def create_objective_func(dataset):
 
-    hyperparameter = {
-        'hidden_layer_sizes': (50, 10, 2),
-        'learning_rate_init': 10**hparams['lr'],
-        'alpha': 10**hparams['alpha'],
-        'max_iter': int(hparams['num_iters']),
-        'batch_size': int(hparams['b_size'])
-    }
+    def objective_func(hparams, device="cpu"):
 
-    net = FullyConnectedClassifier(hyperparameter, dataset)
+        hyperparameter = {
+            'hidden_layer_sizes': (50, 10, 2),
+            'learning_rate_init': 10**hparams['lr'],
+            'alpha': 10**hparams['alpha'],
+            'max_iter': int(hparams['num_iters']),
+            'batch_size': int(hparams['b_size'])
+        }
+        net = FullyConnectedClassifier(hyperparameter, dataset)
 
-    net.train()
+        net.train()
 
-    return 1 - net.evaluate("Testing")
+        return net.evaluate("Testing")
+    return objective_func
 
 
 if __name__ == "__main__":
@@ -28,6 +30,8 @@ if __name__ == "__main__":
     my_parser = argparse.ArgumentParser()
     my_parser.add_argument('--dataset', action='store', type=str, required=True)
     args = my_parser.parse_args()
+
+    objective = create_objective_func(args.dataset)
 
     h_space = {
         "lr": ContinuousDomain(-7, -1),
@@ -51,7 +55,7 @@ if __name__ == "__main__":
         hparams = opt1.get_next_hparams(sample_x, sample_y, pending_x=None)
 
         sample_x.extend([hparams])
-        sample_y.extend([[objective(hparams, args.dataset)]])
+        sample_y.extend([[objective(hparams)]])
 
     print(sample_y)
 
@@ -80,7 +84,7 @@ if __name__ == "__main__":
         hparams = opt2.get_next_hparams(sample_x, sample_y, pending_x=None)
 
         sample_x.extend([hparams])
-        sample_y.extend([[objective(hparams, args.dataset)]])
+        sample_y.extend([[objective(hparams)]])
 
     print(sample_y)
 
