@@ -19,12 +19,13 @@ class AbstractClassifier:
         Y_test : The targets of training data (the ground truth label)
     """
 
-    def __init__(self, model=None):
+    def __init__(self, model, dataset):
         self.model = model
-        self.X_train = DataLoader().X_train
-        self.X_test = DataLoader().X_test
-        self.Y_train = DataLoader().Y_train
-        self.Y_test = DataLoader().Y_test
+        self.data_loader = DataLoader(dataset=dataset)
+        self.X_train = self.data_loader.X_train
+        self.X_test = self.data_loader.X_test
+        self.Y_train = self.data_loader.Y_train
+        self.Y_test = self.data_loader.Y_test
 
     def train(self):
         self.model = self.model.fit(self.X_train, self.Y_train)
@@ -35,8 +36,3 @@ class AbstractClassifier:
         else:
             x, y = self.X_test, self.Y_test
         return 1 - round(self.model.score(x, y) * 100, 2)
-
-    def tunning_model(self, hyperparameters, kfold):
-        cross_validate_model = CrossValidation(self.model, hyperparameters, kfold)
-        cross_validate_model.fit_and_predict(self.X_train, self.Y_train, self.X_test, self.Y_test)
-        return cross_validate_model.get_score(self.X_test, self.Y_test)

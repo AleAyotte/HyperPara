@@ -4,13 +4,13 @@ from sklearn.neural_network import MLPClassifier
 from Model.classifiers.abstract_classifier import AbstractClassifier
 
 
+
 class FullyConnectedClassifier(AbstractClassifier):
 
     def __init__(self, hyperparameter = {
-        'hidden_layer_sizes': (10,), 'alpha': 1e-2,
-        'learning_rate_init': 1e-3, 'max_iter': 5000,
-        'batch_size': 50
-    }):
+    'hidden_layer_sizes': (10,), 'alpha': 1e-2,
+    'learning_rate_init': 1e-3, 'max_iter': 5000,
+    'batch_size': 50}, dataset=None):
 
         self.hyperparameter = hyperparameter
 
@@ -22,4 +22,4 @@ class FullyConnectedClassifier(AbstractClassifier):
                 batch_size=self.hyperparameter['batch_size']
         )
 
-        super().__init__(self.model)
+        super().__init__(self.model, dataset)
