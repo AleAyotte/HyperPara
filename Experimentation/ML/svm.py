@@ -6,18 +6,20 @@ from tqdm import tqdm
 import argparse
 
 
-def objective(hparams, dataset, device="cpu"):
+def create_objective_func(dataset):
+    def objective_func(hparams, device="cpu"):
 
-    hyperparameter = {
-        'C': hparams['C'],
-        'gamma': hparams['gamma']
-    }
+        hyperparameter = {
+            'C': hparams['C'],
+            'gamma': hparams['gamma']
+        }
 
-    net = SVMClassifier(hyperparameter, dataset)
+        net = SVMClassifier(hyperparameter, dataset)
 
-    net.train()
+        net.train()
 
-    return 1 - net.evaluate("Testing")
+        return 1 - net.evaluate("Testing")
+    return objective_func
 
 
 if __name__ == "__main__":
@@ -26,12 +28,13 @@ if __name__ == "__main__":
     my_parser.add_argument('--dataset', action='store', type=str, required=True)
     args = my_parser.parse_args()
 
+    objective = create_objective_func(args.dataset)
+
     h_space = {"C": ContinuousDomain(1, 3), "gamma": ContinuousDomain(0.5, 2)}
 
     ####################################
     #               TPE
     ####################################
-
     print("TPE OPTIMIZATION")
     opt1 = HpManager.get_optimizer(h_space, n_rand_point=5, algo="tpe")
 
@@ -43,7 +46,7 @@ if __name__ == "__main__":
         hparams = opt1.get_next_hparams(sample_x, sample_y, pending_x=None)
 
         sample_x.extend([hparams])
-        sample_y.extend([[objective(hparams, args.dataset)]])
+        sample_y.extend([[objective(hparams)]])
 
     print(sample_y)
 
@@ -72,7 +75,7 @@ if __name__ == "__main__":
         hparams = opt2.get_next_hparams(sample_x, sample_y, pending_x=None)
 
         sample_x.extend([hparams])
-        sample_y.extend([[objective(hparams, args.dataset)]])
+        sample_y.extend([[objective(hparams)]])
 
     print(sample_y)
 
