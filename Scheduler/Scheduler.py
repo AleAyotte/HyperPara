@@ -11,12 +11,12 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
 
     :param objective_func: The objective function to evaluate
     :param h_space: A dictionary of Domain object that represent the hyperparameters space
-    :param optim_list:
+    :param optim_list: A list of optimizer algorithm to instantiate
     :param num_iters: Number of time the objective function will be evaluated
-    :param acq_func_list:
-    :param num_init_rand:
-    :param device_list:
-    :return:
+    :param acq_func_list: A list of acquisition function that will be used the optimizer of type gaussian process
+    :param num_init_rand: Number configuration that will be sample with a random optimizer before using the
+                              optimizers in the list.
+    :param device_list: A list of device on which the objective will be evaluate
     """
     # Objet représentatnt l'espace de calcul.
     comm = MPI.COMM_WORLD
@@ -34,6 +34,7 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
         num_worker_working = 0
         num_job_left = num_iters
 
+        # Dispatch the job to the worker process
         for process in range(1, num_worker+1):
             if num_job_left > 0:
                 hparams = manager.get_next_point()
@@ -42,13 +43,15 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
                 num_worker_working += 1
                 num_job_left -= 1
 
-        while num_worker_working:
+        while num_worker_working > 0:
+            # The manager collect the result
             message = comm.recv(source=MPI.ANY_SOURCE)
             worker_id, hparams, result = message
 
             manager.add_to_sample(hparams, result)
             num_worker_working -= 1
 
+            # If their is job left to do, we send another job to the worker
             if num_job_left > 0:
                 hparams = manager.get_next_point()
                 comm.send(hparams, dest=worker_id)
@@ -64,7 +67,7 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
     elif rank != 0:
         device = device_list[rank-1] if device_list is not None else None
 
-        # W create the worker
+        # We create the worker object
         worker = Worker.Worker(objective=objective_func,
                                device=device,
                                proc_id=rank)

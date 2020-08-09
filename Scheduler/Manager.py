@@ -17,7 +17,13 @@ class Manager:
     """
     def __init__(self, optim_list, acq_func_list, h_space, num_init_rand):
         """
-        The manager class constructor
+        The Manager constructor
+
+        :param optim_list: A list of optimizer algorithm to instantiate
+        :param acq_func_list: A list of acquisition function that will be used the optimizer of type gaussian process
+        :param h_space: The hyperparameters space that will be used by each optimizer to construct the surrogate model.
+        :param num_init_rand: Number configuration that will be sample with a random optimizer before using the
+                              optimizers in the list.
         """
 
         self.optimizers = []
