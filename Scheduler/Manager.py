@@ -29,6 +29,7 @@ class Manager:
         self.optimizers = []
         self.sample_x = []
         self.sample_y = []
+        self.best_y = []
         self.pending_x = []
         self.next_optim = 0
         self.num_optim = len(optim_list)
@@ -86,18 +87,30 @@ class Manager:
         self.sample_y.append([result])
         self.pending_x.remove(config)
 
+        if len(self.best_y) > 0:
+            self.best_y.append(min(result, self.best_y[-1]))
+        else:
+            self.best_y.append(result)
+
     def save_sample(self):
         """
-        Save sample_x and sample_y into separated csv file.
+        Save sample_x, sample_y, and best_y into separated csv file.
         """
 
         csv_column = list(self.sample_x[0].keys())
         csv_column.append("result")
 
+        # We save the results of iteration in a csv file.
         with open('sample_y.csv', 'w') as f:
             for res in self.sample_y:
                 f.write("%s\n" % res[0])
 
+        # We save the best result of each iteration in a csv file.
+        with open('best_y.csv', 'w') as f:
+            for res in self.best_y:
+                f.write("%s\n" % res)
+
+        # We save the hyperparameters and their corresponding results of each iteration in a csv file.
         with open('sample_x.csv', 'w') as f:
             for it in range(len(csv_column)):
                 if it == len(csv_column) - 1:
