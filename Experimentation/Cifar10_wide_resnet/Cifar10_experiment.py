@@ -59,15 +59,17 @@ h_space = {"lr": ContinuousDomain(-7, -1),
            "mixup_3": ContinuousDomain(-0.5, 3.0),
            "t_0": DiscreteDomain(np.arange(10, 120, 1).tolist())}
 
-optim_list = ["GP", "GP"]
+optim_list = ["GP", "GP", "tpe"]
 acq_list = ["EI", "MPI"]
 num_iters = 50
 
-tune_objective(objective_func=objective,
-               h_space=h_space,
-               optim_list=optim_list,
-               acq_func_list=acq_list,
-               num_iters=num_iters,
-               save_path="Result/Cifar10/",
-               save_each_iter=True)
+
+def run_experiment():
+    tune_objective(objective_func=objective,
+                   h_space=h_space,
+                   optim_list=optim_list,
+                   acq_func_list=acq_list,
+                   num_iters=num_iters,
+                   save_path="Result/Cifar10/",
+                   save_each_iter=True)
 
