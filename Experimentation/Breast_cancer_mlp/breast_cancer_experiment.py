@@ -49,4 +49,4 @@ def run_experiment():
                    acq_func_list=acq_list,
                    num_iters=num_iters,
                    save_path="Result/BreastCancer/",
-                   save_each_iter=True)
+                   save_each_iter=False)
