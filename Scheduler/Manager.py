@@ -8,6 +8,7 @@
 
 """
 from Manager.HpManager import get_optimizer
+import csv
 
 
 class Manager:
@@ -78,3 +79,31 @@ class Manager:
         self.sample_x.append(config)
         self.sample_y.append(result)
         self.pending_x.remove(config)
+
+    def save_sample(self):
+        """
+        Save sample_x and sample_y into separated csv file.
+        """
+
+        csv_column = list(self.sample_x[0].keys())
+        csv_column.append("result")
+
+        with open('sample_y.csv', 'w') as f:
+            for res in self.sample_y:
+                f.write("%s\n" % res[0])
+
+        with open('sample_x.csv', 'w') as f:
+            for it in range(len(csv_column)):
+                if it == len(csv_column) - 1:
+                    f.write("%s\n" % csv_column[it])
+                else:
+                    f.write("%s," % csv_column[it])
+
+            for hparams in self.sample_x:
+                keys = list(hparams.keys())
+                for it in range(len(keys)):
+                    key = keys[it]
+                    if it == len(keys) - 1:
+                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it][0]))
+                    else:
+                        f.write("%s," % hparams[key])
