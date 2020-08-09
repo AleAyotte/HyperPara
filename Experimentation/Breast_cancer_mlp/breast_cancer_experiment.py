@@ -9,8 +9,8 @@ def create_objective_func(dataset):
     def objective_func(hparams, device="cpu"):
         hidden_layer_size = []
 
-        for _ in range(hparams["num_layer"]):
-            hidden_layer_size.append(hparams["layer_size"])
+        for _ in range(int(hparams["num_layer"])):
+            hidden_layer_size.append(int(hparams["layer_size"]))
 
         hyperparameter = {
             'hidden_layer_sizes': tuple(hidden_layer_size),
@@ -36,7 +36,7 @@ def run_experiment():
         "alpha": ContinuousDomain(-7, -1),
         "b_size": DiscreteDomain(np.arange(50, 500, 10).tolist()),
         "num_layer": DiscreteDomain(np.arange(1, 20, 1).tolist()),
-        "layer_size": DiscreteDomain(np.arange(5, 550, 1).tolist()),
+        "layer_size": DiscreteDomain(np.arange(20, 100, 1).tolist()),
     }
 
     optim_list = ["GP", "GP", "tpe"]
