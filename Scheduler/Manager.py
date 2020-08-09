@@ -7,7 +7,8 @@
                         of optimizer the next configuration to be evaluate with the objective function by a worker.
 
 """
-from Manager.HpManager import get_optimizer
+# from Manager.HpManager import get_optimizer
+from Optimizer.Optimizer import get_optimizer
 import csv
 
 
