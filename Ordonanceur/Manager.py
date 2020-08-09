@@ -3,9 +3,9 @@
     @Author:            Alexandre Ayotte
     @Creation Date:     09/08/2020
 
-    @Description:       This file provide a class that will be used to create a worker that will evaluate
-                        the cost function on a given vector of hyperparameters and return the information
-                        that need to be send to the Manager.
+    @Description:       This file provide a class that will be used to create a manager that will compute with a list
+                        of optimizer the next configuration to be evaluate with the objective function by a worker.
+
 """
 from Manager.HpManager import get_optimizer
 
