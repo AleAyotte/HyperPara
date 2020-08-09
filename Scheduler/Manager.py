@@ -7,16 +7,14 @@
                         of optimizer the next configuration to be evaluate with the objective function by a worker.
 
 """
-# from Manager.HpManager import get_optimizer
 from Optimizer.Optimizer import get_optimizer
-import csv
 
 
 class Manager:
     """
 
     """
-    def __init__(self, optim_list, acq_func_list, h_space, num_init_rand):
+    def __init__(self, optim_list, acq_func_list, h_space, num_init_rand,  save_path="", save_each_iter=False):
         """
         The Manager constructor
 
@@ -25,6 +23,9 @@ class Manager:
         :param h_space: The hyperparameters space that will be used by each optimizer to construct the surrogate model.
         :param num_init_rand: Number configuration that will be sample with a random optimizer before using the
                               optimizers in the list.
+        :param save_path: the path to directory where the result will saved. (Default="")
+        :param save_each_iter: If true sample_x, sample_y and best_y are save into csv each time that add_to_sample
+                               is called. (Default=False)
         """
 
         self.optimizers = []
@@ -34,6 +35,8 @@ class Manager:
         self.pending_x = []
         self.next_optim = 0
         self.num_optim = len(optim_list)
+        self.path = save_path
+        self.save_each_iter = save_each_iter
 
         self.__create_optimizers(optim_list, acq_func_list, h_space, num_init_rand)
 
@@ -85,13 +88,16 @@ class Manager:
         """
 
         self.sample_x.append(config)
-        self.sample_y.append([result])
+        self.sample_y.append(result)
         self.pending_x.remove(config)
 
         if len(self.best_y) > 0:
             self.best_y.append(min(result, self.best_y[-1]))
         else:
             self.best_y.append(result)
+
+        if self.save_each_iter:
+            self.save_sample()
 
     def save_sample(self):
         """
@@ -102,17 +108,17 @@ class Manager:
         csv_column.append("result")
 
         # We save the results of iteration in a csv file.
-        with open('sample_y.csv', 'w') as f:
+        with open(self.path + "sample_y.csv", 'w') as f:
             for res in self.sample_y:
-                f.write("%s\n" % res[0])
+                f.write("%s\n" % res)
 
         # We save the best result of each iteration in a csv file.
-        with open('best_y.csv', 'w') as f:
+        with open(self.path + "best_y.csv", 'w') as f:
             for res in self.best_y:
                 f.write("%s\n" % res)
 
         # We save the hyperparameters and their corresponding results of each iteration in a csv file.
-        with open('sample_x.csv', 'w') as f:
+        with open(self.path + "sample_x.csv", 'w') as f:
             for it in range(len(csv_column)):
                 if it == len(csv_column) - 1:
                     f.write("%s\n" % csv_column[it])
@@ -126,6 +132,6 @@ class Manager:
                 for it2 in range(len(keys)):
                     key = keys[it2]
                     if it2 == len(keys) - 1:
-                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it1][0]))
+                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it1]))
                     else:
                         f.write("%s," % hparams[key])

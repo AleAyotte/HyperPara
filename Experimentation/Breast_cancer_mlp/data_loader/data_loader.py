@@ -6,7 +6,7 @@ from sklearn import preprocessing
 
 class DataLoader:
 
-    def __init__(self, test_size=0.25, random_state=42, dataset=None):
+    def __init__(self, test_size=0.25, random_state=None, dataset=None):
 
         if dataset == 'iris':
             self.data = load_iris()

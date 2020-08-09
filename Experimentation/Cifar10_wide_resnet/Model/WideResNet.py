@@ -10,8 +10,8 @@
 """
 
 import torch
-import Model.Module as Module
-from Model.Utils import get_stochastic_depth
+from Experimentation.Cifar10_wide_resnet.Model import Module
+from Experimentation.Cifar10_wide_resnet.Model.Utils import get_stochastic_depth
 import numpy as np
 
 

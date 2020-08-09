@@ -1,7 +1,5 @@
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sklearn.svm import SVC
-from .abstract_classifier import AbstractClassifier
+from Experimentation.Iris_svm.classifiers.abstract_classifier import AbstractClassifier
 
 
 class SVMClassifier(AbstractClassifier):

@@ -111,7 +111,7 @@ class HyperoptOptimizer(HPOptimizer):
                     sample = [_dict[key] for key in _dict.keys()]
 
                     if np.all(sample == hp_list):
-                        return sample_y[idx][0]
+                        return sample_y[idx]
 
                 else:
                     self.last_hparams = hparams
@@ -216,6 +216,7 @@ class GpyOptOptimizer(HPOptimizer):
 
         else:
             sample = np.array([[_dict[key] for key in self.keys] for _dict in sample_x])
+            sample_y = [[y] for y in sample_y]
 
             if pending_x is not None:
                 pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
