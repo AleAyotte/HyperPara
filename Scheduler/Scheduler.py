@@ -34,24 +34,26 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
         num_worker_working = 0
         num_job_left = num_iters
 
-        for process in range(1, num_worker):
-            hparams = manager.get_next_point()
+        for process in range(1, num_worker+1):
+            if num_job_left > 0:
+                hparams = manager.get_next_point()
 
-            comm.send(hparams, dest=process)
-            num_worker_working += 1
+                comm.send(hparams, dest=process)
+                num_worker_working += 1
+                num_job_left -= 1
 
         while num_worker_working:
             message = comm.recv(source=MPI.ANY_SOURCE)
             worker_id, hparams, result = message
 
             manager.add_to_sample(hparams, result)
-            num_job_left -= 1
             num_worker_working -= 1
 
             if num_job_left > 0:
                 hparams = manager.get_next_point()
                 comm.send(hparams, dest=worker_id)
                 num_worker_working += 1
+                num_job_left -= 1
 
             else:
                 comm.send("STOP", dest=worker_id)
