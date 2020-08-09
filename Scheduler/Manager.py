@@ -77,7 +77,7 @@ class Manager:
         """
 
         self.sample_x.append(config)
-        self.sample_y.append(result)
+        self.sample_y.append([result])
         self.pending_x.remove(config)
 
     def save_sample(self):
@@ -99,11 +99,13 @@ class Manager:
                 else:
                     f.write("%s," % csv_column[it])
 
-            for hparams in self.sample_x:
+            for it1 in range(len(self.sample_x)):
+                hparams = self.sample_x[it1]
                 keys = list(hparams.keys())
-                for it in range(len(keys)):
-                    key = keys[it]
-                    if it == len(keys) - 1:
-                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it][0]))
+
+                for it2 in range(len(keys)):
+                    key = keys[it2]
+                    if it2 == len(keys) - 1:
+                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it1][0]))
                     else:
                         f.write("%s," % hparams[key])
