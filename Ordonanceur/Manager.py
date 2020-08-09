@@ -67,3 +67,14 @@ class Manager:
 
         return next_x
 
+    def add_to_sample(self, config, result):
+        """
+        Add a configuration $lambda$ and a result into the sample and remove the configuration from the pending list.
+
+        :param config: A dictionary that represent the configuration that have evaluate with the objective function.
+        :param result: A float that represent the result of evaluation.
+        """
+
+        self.sample_x.append(config)
+        self.sample_y.append(result)
+        self.pending_x.remove(config)
