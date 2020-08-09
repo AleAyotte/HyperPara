@@ -51,3 +51,19 @@ class Manager:
                                                  acquisition_fct=acq_func)
                                    )
 
+    def get_next_point(self):
+        """
+        Get the next configuration to evaluate by sampling with the next optimizer to used.
+
+        :return: A dictionary that represent the next configuration to evaluate.
+        """
+
+        optimizer = self.optimizers[self.next_optim]
+        next_x = optimizer.get_next_hparams(sample_x=self.sample_x,
+                                            sample_y=self.sample_y,
+                                            pending_x=self.pending_x)
+        self.pending_x.append(next_x)
+        self.next_optim = (self.next_optim + 1) % self.num_optim
+
+        return next_x
+
