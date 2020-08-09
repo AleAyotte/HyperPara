@@ -214,7 +214,7 @@ class GpyOptOptimizer(HPOptimizer):
 
         :param hp_space: A dictionary that contain object of type continuous domain and discrete domain.
         :param n_rand_point: Number of points that will sample randomly before starting the optimization.
-        :param algo: The algorithm that will be used to define the surrogate model
+        :param algo: The algorithm that will be used to define the surrogate Model
         :param acquisition_fct: The function that will be used to define the next point to evaluate
         """
 
@@ -250,7 +250,7 @@ class GpyOptOptimizer(HPOptimizer):
             if pending_x is not None:
                 pending_x = np.array([[_dict[key] for key in self.keys] for _dict in pending_x])
 
-            # We define the surrogate model
+            # We define the surrogate Model
             bo = BayesianOptimization(
                 f=None,
                 model_type=self.model,
