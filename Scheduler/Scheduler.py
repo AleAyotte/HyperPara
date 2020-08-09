@@ -5,7 +5,7 @@ import numpy as np
 
 
 def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list=None,
-                   num_init_rand=5, device_list=None):
+                   num_init_rand=5, device_list=None, save_path="", save_each_iter=False):
     """
     Tune an objective function
 
@@ -17,8 +17,11 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
     :param num_init_rand: Number configuration that will be sample with a random optimizer before using the
                               optimizers in the list.
     :param device_list: A list of device on which the objective will be evaluate
+    :param save_path: the path to directory where the result will saved. (Default="")
+    :param save_each_iter: If true sample_x, sample_y and best_y are save into csv each time that add_to_sample
+                           is called. (Default=False)
     """
-    # Objet représentatnt l'espace de calcul.
+    # Object that represent the compute space.
     comm = MPI.COMM_WORLD
     num_worker = comm.Get_size() - 1
 
@@ -30,7 +33,10 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
         manager = Manager.Manager(optim_list=optim_list,
                                   acq_func_list=acq_func_list,
                                   h_space=h_space,
-                                  num_init_rand=num_init_rand)
+                                  num_init_rand=num_init_rand,
+                                  save_path=save_path,
+                                  save_each_iter=save_each_iter)
+
         num_worker_working = 0
         num_job_left = num_iters
 
