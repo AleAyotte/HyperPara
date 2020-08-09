@@ -85,7 +85,7 @@ class Manager:
         """
 
         self.sample_x.append(config)
-        self.sample_y.append([result])
+        self.sample_y.append(result)
         self.pending_x.remove(config)
 
         if len(self.best_y) > 0:
@@ -104,7 +104,7 @@ class Manager:
         # We save the results of iteration in a csv file.
         with open('sample_y.csv', 'w') as f:
             for res in self.sample_y:
-                f.write("%s\n" % res[0])
+                f.write("%s\n" % res)
 
         # We save the best result of each iteration in a csv file.
         with open('best_y.csv', 'w') as f:
@@ -126,6 +126,6 @@ class Manager:
                 for it2 in range(len(keys)):
                     key = keys[it2]
                     if it2 == len(keys) - 1:
-                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it1][0]))
+                        f.write("%s, %s\n" % (hparams[key], self.sample_y[it1]))
                     else:
                         f.write("%s," % hparams[key])
