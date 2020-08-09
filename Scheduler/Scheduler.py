@@ -1,3 +1,11 @@
+"""
+    @file:              Scheduler.py
+    @Author:            Alexandre Ayotte
+    @Creation Date:     09/08/2020
+
+    @Description:       This provide the code to dispatch the optimization of a given objective function.
+"""
+
 from Scheduler import Manager, Worker
 import sys
 from mpi4py import MPI

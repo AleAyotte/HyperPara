@@ -7,8 +7,8 @@
     The PreActResNet Model.
 """
 
-from Dataset.DataManager import dataset_to_loader
-from Model.Utils import init_weights, to_one_hot
+from Experimentation.Cifar10_wide_resnet.Dataset.DataManager import dataset_to_loader
+from Experimentation.Cifar10_wide_resnet.Model.Utils import init_weights, to_one_hot
 import numpy as np
 import random
 import torch

@@ -61,6 +61,7 @@ h_space = {"lr": ContinuousDomain(-7, -1),
 
 optim_list = ["GP", "GP", "tpe"]
 acq_list = ["EI", "MPI"]
+device_list = ["cuda:0", "cuda:1"]
 num_iters = 50
 
 
@@ -70,6 +71,7 @@ def run_experiment():
                    optim_list=optim_list,
                    acq_func_list=acq_list,
                    num_iters=num_iters,
+                   device_list=device_list,
                    save_path="Result/Cifar10/",
                    save_each_iter=True)
 
