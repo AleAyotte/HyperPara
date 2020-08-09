@@ -1,6 +1,6 @@
-from Experimentation.Cifar10_wide_resnet.Model.WideResNet import WideResNet
-from Experimentation.Cifar10_wide_resnet.Dataset.DataManager import load_cifar100
-from Experimentation.Cifar10_wide_resnet.Training.Training import Trainer
+from Experimentation.Cifar100_wide_resnet.Model.WideResNet import WideResNet
+from Experimentation.Cifar100_wide_resnet.Dataset.DataManager import load_cifar100
+from Experimentation.Cifar100_wide_resnet.Training.Training import Trainer
 from Manager import HpManager
 from Manager.HpManager import HPtype, Hyperparameter, ContinuousDomain, DiscreteDomain
 import numpy as np
