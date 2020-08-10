@@ -24,14 +24,23 @@ def create_objective_func(dataset):
     return objective_func
 
 
-def run_experiment():
+def run_experiment(setting=1):
+    """
 
+    :param setting: A integer that indicate which set of optimizer will be used in the experimentation
+    """
     objective = create_objective_func("iris")
 
     h_space = {"C": ContinuousDomain(-8, 0), "gamma": ContinuousDomain(-8, 0)}
 
-    optim_list = ["GP", "GP", "tpe"]
-    acq_list = ["EI", "MPI"]
+    if setting == 1:
+        optim_list = ["GP", "GP", "tpe"]
+        acq_list = ["EI", "MPI"]
+        path = "Result/Iris/Setting1"
+    else:
+        optim_list = ["tpe"]
+        path = "Result/Iris/Setting2"
+
     num_iters = 250
 
     tune_objective(objective_func=objective,
@@ -39,6 +48,6 @@ def run_experiment():
                    optim_list=optim_list,
                    acq_func_list=acq_list,
                    num_iters=num_iters,
-                   save_path="Result/Iris/",
+                   save_path=path,
                    save_each_iter=False,
                    verbose=False)
