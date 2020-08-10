@@ -1,4 +1,5 @@
 from Experimentation.Iris_svm.classifiers.svm import SVMClassifier
+import numpy as np
 from Optimizer.Domain import ContinuousDomain
 from Scheduler.Scheduler import tune_objective
 
@@ -11,11 +12,15 @@ def create_objective_func(dataset):
             'gamma': 10**hparams['gamma']
         }
 
-        net = SVMClassifier(hyperparameter, dataset)
+        # Five step of cross validation to reduce the noise that affect the loss function.
+        result = []
+        for _ in range(5):
+            net = SVMClassifier(hyperparameter, dataset)
 
-        net.train()
+            net.train()
+            result.append(net.evaluate("Testing"))
 
-        return 1 - net.evaluate("Testing")
+        return np.mean(result)
     return objective_func
 
 

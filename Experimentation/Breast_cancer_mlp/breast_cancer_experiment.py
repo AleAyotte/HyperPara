@@ -19,11 +19,16 @@ def create_objective_func(dataset):
             'max_iter': 500,
             'batch_size': int(hparams['b_size'])
         }
-        net = FullyConnectedClassifier(hyperparameter, dataset)
 
-        net.train()
+        # Five step of cross validation to reduce the noise that affect the loss function.
+        result = []
+        for _ in range(5):
+            net = FullyConnectedClassifier(hyperparameter, dataset)
 
-        return net.evaluate("Testing")
+            net.train()
+
+            result.append(net.evaluate("Testing"))
+        return np.mean(result)
     return objective_func
 
 
