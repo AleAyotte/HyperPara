@@ -8,6 +8,7 @@
 
 from Scheduler import Manager, Worker
 from mpi4py import MPI
+from time import time
 from tqdm import tqdm
 
 
@@ -48,6 +49,9 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
         num_worker_working = 0
         num_job_left = num_iters
 
+        # We start the choronometer
+        begin = time()
+
         # Dispatch the job to the worker process
         for process in range(1, num_worker+1):
             if num_job_left > 0:
@@ -77,6 +81,11 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
                 else:
                     comm.send("STOP", dest=worker_id)
 
+        # We end the choronometer and print the execution time
+        end = time()
+        print("Execution time: {}".format(end-begin))
+
+        # We save the result
         manager.save_sample()
         
     # Worker
