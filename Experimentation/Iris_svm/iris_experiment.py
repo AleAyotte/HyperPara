@@ -39,6 +39,7 @@ def run_experiment(setting=1):
         path = "Result/Iris/Setting1"
     else:
         optim_list = ["tpe"]
+        acq_list = None
         path = "Result/Iris/Setting2"
 
     num_iters = 250

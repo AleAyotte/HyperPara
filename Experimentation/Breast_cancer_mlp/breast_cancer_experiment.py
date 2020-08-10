@@ -53,6 +53,7 @@ def run_experiment(setting=1):
         path = "Result/BreastCancer/Setting1"
     else:
         optim_list = ["tpe"]
+        acq_list = None
         path = "Result/BreastCancer/Setting2"
 
     num_iters = 250
