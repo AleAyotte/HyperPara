@@ -20,7 +20,7 @@ def argument_parser():
     parser.add_argument('--exp', type=str, default="Iris",
                         choices=["Iris", "BreastCancer", "Cifar10"])
     parser.add_argument('--setting', type=int, default=1,
-                        choices=[1, 2])
+                        choices=[1, 2, 3])
     return parser.parse_args()
 
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if exp_name == "Iris":
         run_exp_iris(setting=args.setting)
     elif exp_name == "BreastCancer":
-        run_exp_bc()
+        run_exp_bc(setting=args.setting)
     elif exp_name == "Cifar10":
         run_exp_cifar10()
     else:

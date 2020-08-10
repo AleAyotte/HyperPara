@@ -37,10 +37,14 @@ def run_experiment(setting=1):
         optim_list = ["GP", "GP", "tpe"]
         acq_list = ["EI", "MPI"]
         path = "Result/Iris/Setting1/"
-    else:
+    elif setting == 2:
         optim_list = ["tpe"]
         acq_list = None
         path = "Result/Iris/Setting2/"
+    else:
+        optim_list = ["GP"]
+        acq_list = ["EI"]
+        path = "Result/Iris/Setting3/"
 
     num_iters = 250
 

@@ -51,10 +51,14 @@ def run_experiment(setting=1):
         optim_list = ["GP", "GP", "tpe"]
         acq_list = ["EI", "MPI"]
         path = "Result/BreastCancer/Setting1/"
-    else:
+    elif setting == 2:
         optim_list = ["tpe"]
         acq_list = None
         path = "Result/BreastCancer/Setting2/"
+    else:
+        optim_list = ["GP"]
+        acq_list = ["EI"]
+        path = "Result/BreastCancer/Setting3/"
 
     num_iters = 250
 
@@ -65,4 +69,4 @@ def run_experiment(setting=1):
                    num_iters=num_iters,
                    save_path=path,
                    save_each_iter=False,
-                   verbose=False)
+                   verbose=True)
