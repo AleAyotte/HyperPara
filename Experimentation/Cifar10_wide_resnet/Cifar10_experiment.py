@@ -39,7 +39,8 @@ def objective(hparams, device="cuda:0"):
                 l2=10**hparams['l2'], batch_size=hparams['b_size'],
                 num_epoch=100, warm_up_epoch=0, t_0=t_0,
                 eta_min=1e-5, grad_clip=0,
-                device=device, mode="Mixup", retrain=False)
+                device=device, mode="Mixup",
+                retrain=False, verbose=False)
 
     # Compute the precision error on test set
     score = trainer.score(testset)
@@ -73,5 +74,6 @@ def run_experiment():
                    num_iters=num_iters,
                    device_list=device_list,
                    save_path="Result/Cifar10/",
-                   save_each_iter=True)
+                   save_each_iter=True,
+                   verbose=True)
 

@@ -49,4 +49,5 @@ def run_experiment():
                    acq_func_list=acq_list,
                    num_iters=num_iters,
                    save_path="Result/BreastCancer/",
-                   save_each_iter=False)
+                   save_each_iter=False,
+                   verbose=False)

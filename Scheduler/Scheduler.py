@@ -7,13 +7,12 @@
 """
 
 from Scheduler import Manager, Worker
-import sys
 from mpi4py import MPI
-import numpy as np
+from tqdm import tqdm
 
 
-def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list=None,
-                   num_init_rand=5, device_list=None, save_path="", save_each_iter=False):
+def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list=None, num_init_rand=5,
+                   device_list=None, save_path="", save_each_iter=False, verbose=False):
     """
     Tune an objective function
 
@@ -28,6 +27,7 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
     :param save_path: the path to directory where the result will saved. (Default="")
     :param save_each_iter: If true sample_x, sample_y and best_y are save into csv each time that add_to_sample
                            is called. (Default=False)
+    :param verbose: If true, then show a progress bar
     """
     # Object that represent the compute space.
     comm = MPI.COMM_WORLD
@@ -57,23 +57,25 @@ def tune_objective(objective_func, h_space, optim_list, num_iters, acq_func_list
                 num_worker_working += 1
                 num_job_left -= 1
 
-        while num_worker_working > 0:
-            # The manager collect the result
-            message = comm.recv(source=MPI.ANY_SOURCE)
-            worker_id, hparams, result = message
+        with tqdm(total=num_iters, disable=(not verbose)) as t:
+            while num_worker_working > 0:
+                # The manager collect the result
+                message = comm.recv(source=MPI.ANY_SOURCE)
+                worker_id, hparams, result = message
 
-            manager.add_to_sample(hparams, result)
-            num_worker_working -= 1
+                manager.add_to_sample(hparams, result)
+                num_worker_working -= 1
+                t.update()
 
-            # If their is job left to do, we send another job to the worker
-            if num_job_left > 0:
-                hparams = manager.get_next_point()
-                comm.send(hparams, dest=worker_id)
-                num_worker_working += 1
-                num_job_left -= 1
+                # If their is job left to do, we send another job to the worker
+                if num_job_left > 0:
+                    hparams = manager.get_next_point()
+                    comm.send(hparams, dest=worker_id)
+                    num_worker_working += 1
+                    num_job_left -= 1
 
-            else:
-                comm.send("STOP", dest=worker_id)
+                else:
+                    comm.send("STOP", dest=worker_id)
 
         manager.save_sample()
         
