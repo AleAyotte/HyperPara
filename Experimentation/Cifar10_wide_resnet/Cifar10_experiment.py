@@ -25,10 +25,11 @@ def objective(hparams, device="cuda:0"):
     # Create the model
     widenet = WideResNet(nb_layer=22, widen_factor=1,
                          mixup=mixup, drop_rate=hparams['drop_rate'],
-                         task="CIFAR100").to(device)
+                         ).to(device)
 
+    checkpoint = "checkpoint_" + device[-1] + ".pth"
     # Create the training object
-    trainer = Trainer(trainset, validset, device=device, save_path="checkpoint.pth", tol=0.01)
+    trainer = Trainer(trainset, validset, device=device, save_path=checkpoint, tol=0.01)
 
     # Use to determine which algorithm will be used to compute the forward. (That accelerate the compute)
     torch.backends.cudnn.benchmark = True
@@ -36,10 +37,11 @@ def objective(hparams, device="cuda:0"):
     # Train the model
     trainer.fit(widenet,
                 learning_rate=10**hparams['lr'], momentum=hparams['mom'],
-                l2=10**hparams['l2'], batch_size=hparams['b_size'],
-                num_epoch=100, warm_up_epoch=0, t_0=t_0,
+                l2=10**hparams['l2'], batch_size=int(hparams['b_size']),
+                num_epoch=100, warm_up_epoch=5, t_0=int(t_0),
                 eta_min=1e-5, grad_clip=0,
-                device=device, mode="Mixup", retrain=False)
+                device=device, mode="Mixup",
+                retrain=False, verbose=False)
 
     # Compute the precision error on test set
     score = trainer.score(testset)
@@ -48,7 +50,7 @@ def objective(hparams, device="cuda:0"):
 
 
 # Define the hyperparameter space
-h_space = {"lr": ContinuousDomain(-7, -1),
+h_space = {"lr": ContinuousDomain(-7, 1),
            "l2": ContinuousDomain(-7, -1),
            "mom": ContinuousDomain(0.1, 0.9),
            "drop_rate": ContinuousDomain(-0.1, 0.5),
@@ -73,5 +75,6 @@ def run_experiment():
                    num_iters=num_iters,
                    device_list=device_list,
                    save_path="Result/Cifar10/",
-                   save_each_iter=True)
+                   save_each_iter=True,
+                   verbose=True)
 

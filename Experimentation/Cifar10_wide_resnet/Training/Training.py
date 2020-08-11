@@ -119,7 +119,7 @@ class Trainer:
         # Go in training mode to activate mixup module
         self.model.train()
 
-        with tqdm(total=num_epoch, initial=start_epoch) as t:
+        with tqdm(total=num_epoch, initial=start_epoch, disable=(not verbose)) as t:
             for epoch in range(start_epoch, num_epoch):
 
                 _grad_clip = 0 if epoch > num_epoch / 2 else grad_clip
@@ -151,7 +151,7 @@ class Trainer:
                                 "best epoch: {}, epoch type: {}".format(
                                  training_loss, val_loss, current_accuracy * 100, best_accuracy * 100, best_epoch + 1,
                                  current_mode)
-                t.update()
+                    t.update()
         self.model.restore(self.save_path)
 
     def mixup_criterion(self, pred, target, mixup_position=None, lamb=None, permut=None):

@@ -1,4 +1,5 @@
 from Experimentation.Iris_svm.classifiers.svm import SVMClassifier
+import numpy as np
 from Optimizer.Domain import ContinuousDomain
 from Scheduler.Scheduler import tune_objective
 
@@ -11,22 +12,40 @@ def create_objective_func(dataset):
             'gamma': 10**hparams['gamma']
         }
 
-        net = SVMClassifier(hyperparameter, dataset)
+        # Five step of cross validation to reduce the noise that affect the loss function.
+        result = []
+        for _ in range(5):
+            net = SVMClassifier(hyperparameter, dataset)
 
-        net.train()
+            net.train()
+            result.append(net.evaluate("Testing"))
 
-        return 1 - net.evaluate("Testing")
+        return np.mean(result)
     return objective_func
 
 
-def run_experiment():
+def run_experiment(setting=1):
+    """
 
+    :param setting: A integer that indicate which set of optimizer will be used in the experimentation
+    """
     objective = create_objective_func("iris")
 
     h_space = {"C": ContinuousDomain(-8, 0), "gamma": ContinuousDomain(-8, 0)}
 
-    optim_list = ["GP", "GP", "tpe"]
-    acq_list = ["EI", "MPI"]
+    if setting == 1:
+        optim_list = ["GP", "GP", "tpe"]
+        acq_list = ["EI", "MPI"]
+        path = "Result/Iris/Setting1/"
+    elif setting == 2:
+        optim_list = ["tpe"]
+        acq_list = None
+        path = "Result/Iris/Setting2/"
+    else:
+        optim_list = ["GP"]
+        acq_list = ["EI"]
+        path = "Result/Iris/Setting3/"
+
     num_iters = 250
 
     tune_objective(objective_func=objective,
@@ -34,5 +53,6 @@ def run_experiment():
                    optim_list=optim_list,
                    acq_func_list=acq_list,
                    num_iters=num_iters,
-                   save_path="Result/Iris/",
-                   save_each_iter=False)
+                   save_path=path,
+                   save_each_iter=False,
+                   verbose=False)

@@ -19,16 +19,24 @@ def create_objective_func(dataset):
             'max_iter': 500,
             'batch_size': int(hparams['b_size'])
         }
-        net = FullyConnectedClassifier(hyperparameter, dataset)
 
-        net.train()
+        # Five step of cross validation to reduce the noise that affect the loss function.
+        result = []
+        for _ in range(5):
+            net = FullyConnectedClassifier(hyperparameter, dataset)
 
-        return net.evaluate("Testing")
+            net.train()
+
+            result.append(net.evaluate("Testing"))
+        return np.mean(result)
     return objective_func
 
 
-def run_experiment():
+def run_experiment(setting=1):
+    """
 
+    :param setting: A integer that indicate which set of optimizer will be used in the experimentation
+    """
     objective = create_objective_func("breast_cancer")
 
     h_space = {
@@ -39,8 +47,19 @@ def run_experiment():
         "layer_size": DiscreteDomain(np.arange(20, 100, 1).tolist()),
     }
 
-    optim_list = ["GP", "GP", "tpe"]
-    acq_list = ["EI", "MPI"]
+    if setting == 1:
+        optim_list = ["GP", "GP", "tpe"]
+        acq_list = ["EI", "MPI"]
+        path = "Result/BreastCancer/Setting1/"
+    elif setting == 2:
+        optim_list = ["tpe"]
+        acq_list = None
+        path = "Result/BreastCancer/Setting2/"
+    else:
+        optim_list = ["GP"]
+        acq_list = ["EI"]
+        path = "Result/BreastCancer/Setting3/"
+
     num_iters = 250
 
     tune_objective(objective_func=objective,
@@ -48,5 +67,6 @@ def run_experiment():
                    optim_list=optim_list,
                    acq_func_list=acq_list,
                    num_iters=num_iters,
-                   save_path="Result/BreastCancer/",
-                   save_each_iter=False)
+                   save_path=path,
+                   save_each_iter=False,
+                   verbose=True)
