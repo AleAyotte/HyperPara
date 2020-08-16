@@ -34,6 +34,6 @@ if __name__ == "__main__":
     elif exp_name == "BreastCancer":
         run_exp_bc(setting=args.setting)
     elif exp_name == "Cifar10":
-        run_exp_cifar10()
+        run_exp_cifar10(setting=args.setting)
     else:
         raise Exception("There is no experimentation named {}".format(exp_name))
