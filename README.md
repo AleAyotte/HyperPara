@@ -66,7 +66,12 @@ tune_objective(objective_func=objective,
  ```
  
  ## Results from our experimentation
- 
+ We used the following optimizer configuration
+ ```
+-Config 1: GP(EI), GP(MPI) and TPE
+-Config 2: TPE
+-Config 3: GP(EI)
+```
 ### IRIS
 
 ![IRIS](./Result/Iris/Iris.png)
