@@ -78,10 +78,10 @@ tune_objective(objective_func=objective,
 
 <b> Model: SVM </b> <p></p>
 
-| Hyperparameter | Distribution | Min | Max | Step | Category|
-| --- | --- | --- | --- | --- | --- |
-|C | Log-Uniform | 1e-7| 1e0| N/A| N/A|
-|Gamma | Log-Uniform | 1e-7| 1e0| N/A| N/A |     
+| Hyperparameter | Distribution | Min | Max | Step |
+| --- | --- | --- | --- | --- |
+|C | Log-Uniform | 1e-7| 1e0| N/A|
+|Gamma | Log-Uniform | 1e-7| 1e0| N/A|     
 
 <br/><br/>
 ### Breast Cancer Wisconsin
@@ -90,10 +90,30 @@ tune_objective(objective_func=objective,
 
 <b> Model: Multi Layer Perceptron </b> <p></p>
 
-| Hyperparameter | Distribution | Min | Max | Step | Category|
-| --- | --- | --- | --- | --- | --- |
-|Learning rate | Log-Uniform | 1e-8| 1e0| N/A| N/A|
-|L2 regularization | Log-Uniform | 1e-8| 1e0| N/A| N/A |     
-|Batch size | Discrete | 50| 500| 10| N/A|  
-|# Layer | Discrete | 1| 50| 1| N/A|  
-|Layer size | Discrete | 20| 100| 1| N/A| 
+| Hyperparameter | Distribution | Min | Max | Step |
+| --- | --- | --- | --- | --- |
+|Learning rate | Log-Uniform | 1e-8| 1e0| N/A|
+|L2 regularization | Log-Uniform | 1e-8| 1e0| N/A|
+|Batch size | Discrete | 50| 500| 10|
+|# Layer | Discrete | 1| 50| 1|  
+|Layer size | Discrete | 20| 100| 1|
+
+<br/><br/>
+### CIFAR-10
+
+![CIFAR10](./Result/Cifar10/Cifar10.png)
+
+<b> Model: Multi Layer Perceptron </b> <p></p>
+
+| Hyperparameter | Distribution | Min | Max | Step |
+| --- | --- | --- | --- | --- |
+|Learning rate | Log-Uniform | 1e-7| 1e1| N/A|
+|L2 regularization | Log-Uniform | 1e-7| 1e-1| N/A|
+|Momentum | Uniform | 0.1| 0.9| N/A|
+|Dropout Max | Uniform | 0| 0.5| N/A|
+|Batch size | Discrete | 50| 300| 10|
+|Mixup 0 | Uniform | 0| 3.0| N/A| 
+|Mixup 1 | Uniform | 0| 3.0| N/A| 
+|Mixup 2 | Uniform | 0| 3.0| N/A| 
+|Mixup 3 | Uniform | 0| 3.0| N/A| 
+|$T_0$ | Discrete | 10| 100| 150|
