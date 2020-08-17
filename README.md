@@ -103,7 +103,7 @@ tune_objective(objective_func=objective,
 
 ![CIFAR10](./Result/Cifar10/Cifar10.png)
 
-<b> Model: Multi Layer Perceptron </b> <p></p>
+<b> Model: WideResNet-22-3 </b> <p></p>
 
 | Hyperparameter | Distribution | Min | Max | Step |
 | --- | --- | --- | --- | --- |
